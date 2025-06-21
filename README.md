@@ -1,23 +1,17 @@
 # 🛠️ Net Automation Scripts
 
 This repository includes a set of useful scripts to automate daily networking and security tasks.  
-Ideal for managing Cisco switches, FortiGate firewalls, and general network diagnostics.
+Ideal for managing Cisco switches.
 
 ## 📌 Included Scripts
 
-- **cisco_backup.py** – Automatically connect to Cisco switches and download configurations.
-- **fortigate_monitor.py** – Query CPU, session and interface status from FortiGate firewalls.
-- **ping_sweep.py** – Scan a subnet for live hosts and output the results.
-- **port_checker.py** – Check open TCP/UDP ports on target devices.
-- **switch_reboot.py** – Schedule or trigger remote reboots for network switches.
+| Script Name                  | Purpose                                                                 |
+|-----------------------------|-------------------------------------------------------------------------|
+| `send_commands_to_switches.py` | Send one or more CLI commands to multiple network devices via SSH       |
+| `backup_configs.py`         | Retrieve and save the `running-config` from each switch/router          |
+| `check_port_status.py`      | Run `show interfaces status` or equivalent to check port statuses       |
+| `upgrade_switch_ftp.py`     | Initiate image upgrade using a specified FTP path, followed by reload   |
 
-## 🚀 Usage
-
-```bash
-python cisco_backup.py
-python fortigate_monitor.py
-python ping_sweep.py
-```
 
 > Make sure you have Python 3.7+ and install dependencies with:
 ```bash
