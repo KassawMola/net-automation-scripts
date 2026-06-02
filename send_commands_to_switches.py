@@ -1,49 +1,58 @@
-import paramiko
 import csv
 import os
+import time
 from datetime import datetime
+from pathlib import Path
 
-DEVICES_FILE = "assets/sample_devices.csv"
-COMMANDS_FILE = "assets/commands.txt"
-OUTPUT_FOLDER = "outputs"
+import paramiko
+
+
+DEVICES_FILE = Path("assets/sample_devices.csv")
+COMMANDS_FILE = Path("assets/commands.txt")
+OUTPUT_FOLDER = Path("outputs")
+
 
 def read_devices(file_path):
-    devices = []
-    with open(file_path, "r") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            devices.append(row)
-    return devices
+    with open(file_path, "r", newline="", encoding="utf-8") as file:
+        return list(csv.DictReader(file))
+
 
 def read_commands(file_path):
-    with open(file_path, "r") as f:
-        return [line.strip() for line in f if line.strip()]
+    with open(file_path, "r", encoding="utf-8") as file:
+        return [line.strip() for line in file if line.strip()]
+
+
+def safe_name(value):
+    return "".join(char if char.isalnum() or char in ("-", "_") else "_" for char in value)
+
 
 def send_commands(device, commands):
-    ip = device["ip"]
+    host = device["host"]
+    target = device.get("ip") or host
     username = device["username"]
     password = device["password"]
 
-    print(f"[+] Connecting to {ip}")
-    try:
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(ip, username=username, password=password, look_for_keys=False)
+    print(f"[+] Connecting to {host} ({target})")
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+    try:
+        client.connect(target, username=username, password=password, look_for_keys=False)
         shell = client.invoke_shell()
         output = ""
 
-        for cmd in commands:
-            shell.send(cmd + "\n")
-            while not shell.recv_ready():
-                pass
-            output += shell.recv(9999).decode()
+        for command in commands:
+            shell.send(command + "\n")
+            time.sleep(1)
+            while shell.recv_ready():
+                output += shell.recv(9999).decode(errors="replace")
 
-        client.close()
         return output
+    except Exception as exc:
+        return f"[!] Failed to connect to {host} ({target}): {exc}"
+    finally:
+        client.close()
 
-    except Exception as e:
-        return f"[!] Failed to connect to {ip}: {str(e)}"
 
 def main():
     os.makedirs(OUTPUT_FOLDER, exist_ok=True)
@@ -52,13 +61,12 @@ def main():
     commands = read_commands(COMMANDS_FILE)
 
     for device in devices:
-        ip = device["ip"]
+        host = device["host"]
         result = send_commands(device, commands)
+        output_file = OUTPUT_FOLDER / f"output_{safe_name(host)}_{timestamp}.txt"
+        output_file.write_text(result, encoding="utf-8")
+        print(f"[+] Output saved for {host}")
 
-        with open(f"{OUTPUT_FOLDER}/output_{ip}_{timestamp}.txt", "w") as f:
-            f.write(result)
-        print(f"[✓] Output saved for {ip}")
 
 if __name__ == "__main__":
     main()
-    
