@@ -1,0 +1,2 @@
+ftp://demo-server/images/catalyst-demo-image.bin
+
