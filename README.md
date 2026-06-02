@@ -16,11 +16,11 @@ Reusable Python utilities for network operations labs and demo environments. The
 The repository uses `assets/sample_devices.csv` for demo input.
 
 ```csv
-host,ip,username,password,platform
-catalyst-demo-01,192.168.1.1,admin,admin123!,cisco_ios
+host,ip,username,password_env,platform
+DEMO01,192.168.1.1,admin,DEMO_DEVICE_PASSWORD,cisco_ios
 ```
 
-`admin/admin123!` and `192.168.1.1` are included only as lab/demo values. Replace them before using the scripts in any real environment.
+`192.168.1.1` is included only as a lab/demo address. Device passwords are read from environment variables and should not be committed.
 
 ## Quick start
 
@@ -28,6 +28,7 @@ catalyst-demo-01,192.168.1.1,admin,admin123!,cisco_ios
 python -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
+$env:DEMO_DEVICE_PASSWORD="your-demo-password"
 python send_commands_to_switches.py
 ```
 
