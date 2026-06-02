@@ -1,32 +1,40 @@
-# 🛠️ Net Automation Scripts
+# Net Automation Scripts
 
-This repository includes a set of useful scripts to automate daily networking and security tasks.  
-Ideal for managing Cisco switches.
+Reusable Python utilities for network operations labs and demo environments. The scripts are written for safe portfolio use: devices are loaded from a sample inventory, credentials are demo-only, and no customer names or production addresses are included.
 
-## 📌 Included Scripts
+## What is included
 
-| Script Name                  | Purpose                                                                 |
-|-----------------------------|-------------------------------------------------------------------------|
-| `send_commands_to_switches.py` | Send one or more CLI commands to multiple network devices via SSH       |
-| `backup_configs.py`         | Retrieve and save the `running-config` from each switch/router          |
-| `check_port_status.py`      | Run `show interfaces status` or equivalent to check port statuses       |
-| `upgrade_switch_ftp.py`     | Initiate image upgrade using a specified FTP path, followed by reload   |
+| Script | Purpose |
+| --- | --- |
+| `send_commands_to_switches.py` | Send one or more CLI commands to devices over SSH. |
+| `backup_configs.py` | Collect running configuration output and save it locally. |
+| `check_port_status.py` | Capture interface status output for quick operational checks. |
+| `upgrade_switch_ftp.py` | Demonstrate an image copy and reload workflow using a lab upgrade path. |
 
+## Demo inventory
 
-> Make sure you have Python 3.7+ and install dependencies with:
-```bash
-pip install -r requirements.txt
+The repository uses `assets/sample_devices.csv` for demo input.
+
+```csv
+host,ip,username,password,platform
+catalyst-demo-01,192.168.1.1,admin,admin123!,cisco_ios
 ```
 
-## 📂 Requirements
+`admin/admin123!` and `192.168.1.1` are included only as lab/demo values. Replace them before using the scripts in any real environment.
 
-- `netmiko`
-- `paramiko`
-- `pythonping`
-- `requests`
+## Quick start
 
-## 🔐 Notes
-Make sure to update IP addresses, credentials, and paths inside each script to match your environment.
+```bash
+python -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt
+python send_commands_to_switches.py
+```
 
----
-Created by Kassaw Mola – Senior Network & Security Engineer
+## Notes
+
+- Keep production hostnames, addresses, passwords, and customer details out of the repository.
+- Store sensitive values in a secrets manager or environment-specific inventory file.
+- Use these scripts as portfolio-safe examples for NetOps and SecOps automation.
+
+Created by Kassaw Mola.
