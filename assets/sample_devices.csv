@@ -1,0 +1,2 @@
+host,ip,username,password,platform
+catalyst-demo-01,192.168.1.1,admin,admin123!,cisco_ios
