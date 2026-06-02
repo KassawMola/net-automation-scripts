@@ -1,44 +1,52 @@
-import paramiko
 import csv
 import os
+import time
 from datetime import datetime
+from pathlib import Path
 
-DEVICES_FILE = "assets/sample_devices.csv"
-OUTPUT_FOLDER = "outputs"
+import paramiko
+
+
+DEVICES_FILE = Path("assets/sample_devices.csv")
+OUTPUT_FOLDER = Path("outputs")
+
 
 def read_devices(file_path):
-    devices = []
-    with open(file_path, "r") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            devices.append(row)
-    return devices
+    with open(file_path, "r", newline="", encoding="utf-8") as file:
+        return list(csv.DictReader(file))
+
+
+def safe_name(value):
+    return "".join(char if char.isalnum() or char in ("-", "_") else "_" for char in value)
+
 
 def backup_config(device):
-    ip = device["ip"]
+    host = device["host"]
+    target = device.get("ip") or host
     username = device["username"]
     password = device["password"]
 
-    print(f"[+] Connecting to {ip} for config backup")
-    try:
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(ip, username=username, password=password, look_for_keys=False)
+    print(f"[+] Connecting to {host} ({target}) for config backup")
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+    try:
+        client.connect(target, username=username, password=password, look_for_keys=False)
         shell = client.invoke_shell()
         shell.send("terminal length 0\n")
         shell.send("show running-config\n")
+        time.sleep(2)
+
         output = ""
+        while shell.recv_ready():
+            output += shell.recv(65535).decode(errors="replace")
 
-        while not shell.recv_ready():
-            pass
-        output += shell.recv(65535).decode()
-
-        client.close()
         return output
+    except Exception as exc:
+        return f"[!] Error on {host} ({target}): {exc}"
+    finally:
+        client.close()
 
-    except Exception as e:
-        return f"[!] Error on {ip}: {str(e)}"
 
 def main():
     os.makedirs(OUTPUT_FOLDER, exist_ok=True)
@@ -46,12 +54,12 @@ def main():
     devices = read_devices(DEVICES_FILE)
 
     for device in devices:
-        ip = device["ip"]
+        host = device["host"]
         config = backup_config(device)
+        output_file = OUTPUT_FOLDER / f"backup_{safe_name(host)}_{timestamp}.txt"
+        output_file.write_text(config, encoding="utf-8")
+        print(f"[+] Backup saved for {host}")
 
-        with open(f"{OUTPUT_FOLDER}/backup_{ip}_{timestamp}.txt", "w") as f:
-            f.write(config)
-        print(f"[✓] Backup saved for {ip}")
 
 if __name__ == "__main__":
     main()
