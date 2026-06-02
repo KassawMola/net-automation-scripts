@@ -24,7 +24,9 @@ def check_ports(device):
     host = device["host"]
     target = device.get("ip") or host
     username = device["username"]
-    password = device["password"]
+    password = os.getenv(device.get("password_env", ""))
+    if not password:
+        return f"[!] Missing password environment variable for {host}"
 
     print(f"[+] Checking port status on {host} ({target})")
     client = paramiko.SSHClient()
